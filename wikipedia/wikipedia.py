@@ -48,7 +48,7 @@ def set_user_agent(user_agent_string):
     USER_AGENT = user_agent_string
 
 
-def set_proxy(proxy=''):
+def set_proxy(proxy=None):
     """
     cause wikipedia cannot visit from china, support proxy setting is necessary
     like:proxies = {
@@ -64,6 +64,8 @@ def set_proxy(proxy=''):
     :param proxy: dict for proxy setting
     :return:None
     """
+    global PROXY
+    PROXY = proxy
 
 
 def set_rate_limiting(rate_limit, min_wait=timedelta(milliseconds=50)):
