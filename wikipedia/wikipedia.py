@@ -661,7 +661,13 @@ class WikipediaPage(object):
                 'action': 'parse',
                 'prop': 'sections',
             }
-            query_params.update(self.__title_query_param)
+            # may be api changed, need page or pageids in dict, not titles
+            if getattr(self, 'title', None) is not None:
+                title_param = {'page': self.title}
+            else:
+                title_param = {'pageids': self.pageid}
+
+            query_params.update(title_param)
 
             request = _wiki_request(query_params)
             self._sections = [section['line'] for section in request['parse']['sections']]
