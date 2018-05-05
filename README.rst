@@ -13,7 +13,7 @@ Wikipedia
 
 **Wikipedia** is a Python library that makes it easy to access and parse
 data from Wikipedia.
-
+增加代理等设置
 Search Wikipedia, get article summaries, get data like links and images
 from a page, and more. Wikipedia wraps the `MediaWiki
 API <https://www.mediawiki.org/wiki/API>`__ so you can focus on using
