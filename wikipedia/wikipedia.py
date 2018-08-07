@@ -11,6 +11,8 @@ from .exceptions import (
     WikipediaException, ODD_ERROR_MESSAGE)
 from .util import cache, stdout_encode, debug
 import re
+from bs4 import BeautifulSoup, Tag
+import json
 
 API_URL = 'http://en.wikipedia.org/w/api.php'
 RATE_LIMIT = False
@@ -18,6 +20,21 @@ RATE_LIMIT_MIN_WAIT = None
 RATE_LIMIT_LAST_CALL = None
 USER_AGENT = 'wikipedia (https://github.com/goldsmith/Wikipedia/)'
 PROXY = None
+REQUEST_LANG = None
+
+
+def set_request_lang(lang):
+    """
+    this api used for setting `request header`, because default chinese is traditional.
+    setting chinese simplified useing:
+    >>> import wikipedia
+    >>> wikipedia.set_request_lang('zh-CN,zh;q=0.9,en;q=0.8,da;q=0.7')
+    :param lang: the
+    :return:
+    """
+    global REQUEST_LANG
+    if lang:
+        REQUEST_LANG = lang
 
 
 def set_lang(prefix):
@@ -274,6 +291,46 @@ def summary(title, sentences=0, chars=0, auto_suggest=True, redirect=True):
     summary = request['query']['pages'][pageid]['extract']
 
     return summary
+
+
+def parse_row(tr):
+    """
+    give row of info box, return name and value, row should has two td/tr ele
+    :param tr: table row <tr>...</tr>
+    :return: [name,value]
+    """
+    result = []
+    for ele in tr.children:
+        if isinstance(ele, Tag) and ele.name in ('th', 'td'):
+            result.append(ele.text.strip())
+        if len(result) >= 2:
+            break
+    if len(result) < 2:
+        result.extend([None] * (2 - len(result)))
+    return result
+
+
+def infobox(title):
+    """
+    this method using for get infobox, if page has multi infobox, result would be merged.
+    :param title: title of wikipedia
+    :return: json format of {name:value} for infobox
+    """
+    query_params = {
+        'page': title,
+        'action': 'parse'
+    }
+    request = _wiki_request(query_params)
+
+    html = request['parse']['text']['*']
+    soup = BeautifulSoup(html)
+    trs = soup.select('table.infobox tr')
+    result = {}
+    for line in trs:
+        name, value = parse_row(line)
+        if name and value:
+            result[name] = value
+    return json.dumps(result)
 
 
 def page(title=None, pageid=None, auto_suggest=True, redirect=True, preload=False):
@@ -746,7 +803,7 @@ def _wiki_request(params):
     '''
     global RATE_LIMIT_LAST_CALL
     global USER_AGENT
-
+    global REQUEST_LANG
     params['format'] = 'json'
     if not 'action' in params:
         params['action'] = 'query'
@@ -754,6 +811,8 @@ def _wiki_request(params):
     headers = {
         'User-Agent': USER_AGENT
     }
+    if REQUEST_LANG:
+        headers['accept-language'] = REQUEST_LANG
 
     if RATE_LIMIT and RATE_LIMIT_LAST_CALL and \
             RATE_LIMIT_LAST_CALL + RATE_LIMIT_MIN_WAIT > datetime.now():
