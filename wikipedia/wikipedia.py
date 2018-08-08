@@ -321,7 +321,8 @@ def infobox(title):
         'action': 'parse'
     }
     request = _wiki_request(query_params)
-
+    if 'error' in request:
+        return None
     html = request['parse']['text']['*']
     soup = BeautifulSoup(html)
     trs = soup.select('table.infobox tr')

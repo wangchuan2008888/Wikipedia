@@ -9,6 +9,6 @@ class TestLang(unittest.TestCase):
         wikipedia.set_lang('zh')
         wikipedia.set_proxy({'http': 'http://localhost:1080', 'https': 'https://localhost:1080'})
         wikipedia.set_request_lang('zh-CN,zh;q=0.9,en;q=0.8,da;q=0.7')
-        rslt = wikipedia.infobox('肥胖症')
+        rslt = wikipedia.infobox('胃痞')
         self.assertIsNotNone(rslt)
 
