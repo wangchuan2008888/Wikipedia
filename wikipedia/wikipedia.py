@@ -325,6 +325,8 @@ def infobox(title):
         return None
     html = request['parse']['text']['*']
     soup = BeautifulSoup(html)
+    if soup.find('ul', 'redirectText'):
+        return infobox(soup.find('ul', 'redirectText').find('a').get('title'))
     trs = soup.select('table.infobox tr')
     result = {}
     for line in trs:
